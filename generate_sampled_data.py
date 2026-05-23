@@ -8,6 +8,7 @@ def get_action(actions_str):
 def sample_df(df, approx_size = 1000, random_seed = 42):
     #To avoid complications in our analysis, we choose to only keep datapoints with one main action.
     df = df[df['numerosity'] == 1].reset_index(drop=True)
+    df['original_index'] = df.index
 
     #Extract the action for each brow of the dataframe.
     df['main_action'] = df["actions"].apply(get_action)
@@ -26,13 +27,13 @@ def sample_df(df, approx_size = 1000, random_seed = 42):
 
 def main():
     #The data donwloaded from the git hub repo.
-    original_data_path = './data/dataset.csv'
-    sampled_file_path = './data/sampled_data.csv'
+    original_data_path = './data/sampled_data.csv'
+    sampled_file_path = './data/sampled_data_mini.csv'
 
     df = pd.read_csv(original_data_path, sep=';')
 
     #Sample the 
-    sample_size = 1000
+    sample_size = 200
     sampled_df = sample_df(df, sample_size)
 
     #Save the new df to the file path. This sampled dataset is being used.

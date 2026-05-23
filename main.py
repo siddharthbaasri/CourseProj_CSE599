@@ -31,7 +31,6 @@ def extract_and_download(page_url, filename):
         a.get_attribute('src') for a in driver.find_elements(By.TAG_NAME, 'video')
         if a.is_displayed() and a.get_attribute('src').endswith('.mp4')
     ]
-
     mp4_url = visible_mp4_urls[0]
 
     # Use requests with cookies from the live browser session
@@ -63,7 +62,7 @@ def main():
     # Load CSV
     df = pd.read_csv(csv_path, sep=';')
 
-    # Download each URL as an MP4
+    # Download each URL as an MP4. This script will take around 1.5-2 hours to run
     force_download_all = False
     for counter, url in enumerate(df['urls'], start=1):
         try:
