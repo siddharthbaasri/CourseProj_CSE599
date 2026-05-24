@@ -1,14 +1,66 @@
 from vlm import VLM
 from prompt import prompt
 import time
+import os
+import pandas as pd
+
+def run_experiment(vlm, df):
+    """Run a single experiment and save results to CSV."""
+
+    filename = "./data/ground_truth.csv"
+
+    # Load existing results if any
+    if os.path.exists(filename):
+        existing_df = pd.read_csv(filename)
+        completed_urls = set(existing_df['url'].tolist())
+        results = existing_df.to_dict('records')
+        print(f"Resuming {filename} — {len(completed_urls)} clips already done")
+    else:
+        completed_urls = set()
+        results = []
+
+    pending = [(counter, row) for counter, row in df.iterrows() 
+               if row['urls'] not in completed_urls]
+    
+    print(f"{len(pending)} clips remaining")
+
+    for i, (counter, row) in enumerate(pending):
+        video_path = f"./data/videos/clip_{row['original_index'] + 1}.mp4"
+        try:
+            start = time.time()
+            caption, tokens = vlm.get_response_video(video_path, n_frames=100)
+            elapsed = time.time() - start
+
+            results.append({
+                'url': row['urls'],
+                'caption': caption,
+                'time': elapsed,
+                'tokens': tokens
+            })
+
+        except Exception as e:
+            print(f"Failed on clip {counter + 1}: {e}")
+            results.append({
+                'url': row['urls'],
+                'caption': '',
+                'time': None,
+                'tokens': None
+            })
+
+        # Save every 2 clips
+        if (i + 1) % 1 == 0:
+            pd.DataFrame(results).to_csv(filename, index=False)
+            print(f"Saved progress — {i + 1} clips processed")
+
+
+    # Final save
+    pd.DataFrame(results).to_csv(filename, index=False)
+    print(f"Completed {filename}")
 
 def main():
-    video_path = './data/videos/clip_1.mp4'
-    vlm = VLM(model = "unsloth/Qwen2.5-VL-3B-Instruct", system_prompt = prompt)
-    start = time.time()
-    response = vlm.get_response_video(video_path)
-    print(f"Time: {time.time() - start:.2f}s")
-    print(response)
+    df = pd.read_csv('./data/sampled_data.csv', sep=';')
+    vlm = VLM(model = "xai.grok-4.20-reasoning", system_prompt = prompt)
+    run_experiment(vlm, df)
 
 if __name__ == "__main__":
     main()
