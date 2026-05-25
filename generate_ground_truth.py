@@ -47,8 +47,8 @@ def run_experiment(vlm, df):
                 'tokens': None
             })
 
-        # Save every 2 clips
-        if (i + 1) % 1 == 0:
+        # Save every 5 clips
+        if (i + 1) % 5 == 0:
             pd.DataFrame(results).to_csv(filename, index=False)
             print(f"Saved progress — {i + 1} clips processed")
 
