@@ -12,6 +12,14 @@ RESULTS_DIR = './data/results'
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 SAMPLE_SIZES = [24, 18, 12, 6, 3]
+ACTION_TYPES = ['Turnover', 'Foul', 'Block', 'Rebound', 'Steal', '2PT Shot', '3PT Shot', 'Free Throw', 'Violation']
+
+def extract_action_from_caption(caption):
+    """Extract action type from caption string."""
+    for action in ACTION_TYPES:
+        if action in str(caption):
+            return action
+    return 'Unknown'
 
 def run_experiment(vlm, df, method, n_frames=None):
     """Run a single experiment and save results to CSV."""
@@ -49,12 +57,15 @@ def run_experiment(vlm, df, method, n_frames=None):
             caption = vlm.get_response(frames)
             elapsed = time.time() - start
 
+            action = extract_action_from_caption(caption)
+
             results.append({
                 'url': row['urls'],
                 'caption': caption,
                 'time': elapsed,
                 'n_frames_requested': n_frames,
-                'n_frames_used': len(frames)
+                'n_frames_used': len(frames),
+                'action': action
             })
 
         except Exception as e:

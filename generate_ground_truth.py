@@ -4,6 +4,15 @@ import time
 import os
 import pandas as pd
 
+ACTION_TYPES = ['Turnover', 'Foul', 'Block', 'Rebound', 'Steal', '2PT Shot', '3PT Shot', 'Free Throw', 'Violation']
+
+def extract_action_from_caption(caption):
+    """Extract action type from caption string."""
+    for action in ACTION_TYPES:
+        if action in str(caption):
+            return action
+    return 'Unknown'
+
 def run_experiment(vlm, df):
     """Run a single experiment and save results to CSV."""
 
@@ -30,12 +39,15 @@ def run_experiment(vlm, df):
             start = time.time()
             caption, tokens = vlm.get_response_video(video_path, n_frames=100)
             elapsed = time.time() - start
+            
+            action = extract_action_from_caption(caption)
 
             results.append({
                 'url': row['urls'],
                 'caption': caption,
                 'time': elapsed,
-                'tokens': tokens
+                'tokens': tokens,
+                'action': action
             })
 
         except Exception as e:
@@ -44,7 +56,8 @@ def run_experiment(vlm, df):
                 'url': row['urls'],
                 'caption': '',
                 'time': None,
-                'tokens': None
+                'tokens': None,
+                'action': None
             })
 
         # Save every 5 clips
